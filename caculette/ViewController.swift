@@ -45,37 +45,46 @@ class ViewController: UIViewController {
             }
             else if operateurs.keys.contains(el){
                 currentOperator = el
-                if stack.count >= 2 {
-                    let a = stack.removeLast()
-                    let b = stack.removeLast()
-                    switch el {
-                    case "+":
-                        stack.append(a + b)
-                    case "-":
-                        stack.append(a - b)
-                    case "x":
-                        stack.append(a * b)
-                    case "/":
-                        stack.append(a / b)
-                    case "%":
-                        stack.append(a % b)
-                    case "+/-":
-                        stack.append(a % b)
-                    default:
-                        break
-                    }
-                } else {
-                    
+            } else {
+                continue
+            }
+            if stack.count >= 2 {
+                let a = stack.removeLast()
+                let b = stack.removeLast()
+                switch currentOperator {
+                case "+":
+                    stack.append(a + b)
+                case "-":
+                    stack.append(b - a)
+                case "x":
+                    stack.append(a * b)
+                case "/":
+                    stack.append(b / a)
+                case "%":
+                    stack.append(a % b)
+                case "+/-":
+                    stack.append(a % b)
+                default:
+                    break
                 }
+                currentOperator = ""
+            } else {
+                continue
             }
         }
+        
         return stack.count == 1 ? stack.first : nil
     }
     
-
+    @IBAction func effacer(_ sender: Any) {
+        saisie.text.removeLast()
+    }
+    
     @IBAction func resultat(_ sender: Any) {
-        let expression = pretraitement(mot: saisie.text);
-        print("result: \(executOperation(expression))")
+        let expression = pretraitement(mot: saisie.text)
+        print("result: \(executOperation(expression)!)")
+        historyText.text = String(expression.joined(separator: "")) + "=" + String(executOperation(expression)!) + "\n" + historyText.text
+        saisie.text = "0"
     }
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -84,17 +93,25 @@ class ViewController: UIViewController {
 
     @IBAction func saisie_nombre(_ sender: UIButton) {
         print("la valeur saisie est : \(sender.titleLabel!.text!)")
+        if saisie.text.count == 1 && saisie.text == "0"{
+            saisie.text = ""
+        }
         saisie.text += sender.titleLabel!.text!
     }
     @IBAction func reset(_ sender: Any) {
         saisie.text = "0"
+        historyText.text = ""
     }
     
     @IBAction func saisie_operateur(_ sender: UIButton) {
         print("l'operateur saisie est : \(sender.titleLabel!.text!)")
+        if operateurs.keys.contains(String(saisie.text.last!)) {
+            saisie.text.removeLast()
+        }
         saisie.text += sender.titleLabel!.text!
     }
     
     @IBOutlet weak var saisie: UITextView!
+    @IBOutlet weak var historyText: UITextView!
 }
 
