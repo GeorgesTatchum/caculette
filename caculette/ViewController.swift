@@ -118,7 +118,7 @@ class ViewController: UIViewController {
             if let result = executOperation(expression) {
                 print("result: \(result)")
                 historyText.text = String(expression.joined(separator: "")) + "=" + String(result) + "\n" + historyText.text
-                saisie.text = String(result)
+                saisie.text = "0"
             } else {
                 historyText.text = String(expression.joined(separator: "")) + "=" + "Erreur" + "\n" + historyText.text
                 print("Une erreur s'est produite lors de l'évaluation de l'expression.")
@@ -158,11 +158,13 @@ class ViewController: UIViewController {
                 if let lastCharacter = saisie.text.last, lastCharacter.isNumber {
                     // Si c'est le cas, transformez le nombre en négatif ou en positif dépendemment de la dernière valeur
                     var text : [String] = pretraitement(mot: saisie.text)
-                    if (!text[text.count - 1].contains("-")) {
-                        text[text.count - 1] = "-" + text[text.count - 1]
+                    if (text[text.count - 2] == "-") {
+                        text[text.count - 2] = "+"
                         
+                    } else if text[text.count - 2] == "+" {
+                        text[text.count - 2] = "-"
                     } else {
-                        text[text.count - 1].removeFirst()
+                        text[text.count - 1] = "-" + text[text.count - 1]
                     }
                     saisie.text = String(text.joined(separator:""))
                 }
