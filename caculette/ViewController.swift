@@ -174,10 +174,12 @@ class ViewController: UIViewController {
             } else if sender.titleLabel!.text! == "%" && saisie.text.last == "%" {
                 // ne rien faire
             } else if sender.titleLabel!.text! == "%" && saisie.text.last!.isNumber {
-                let a: String = String(saisie.text!.popLast() ?? "0")
+                var text : [String] = pretraitement(mot: saisie.text)
+                let a: String = String(text.popLast() ?? "0")
                 let result: Float = (Float(a) ?? 0) / 100
+                text.append(String(result))
                 print("la valeur saisie est : \(String(result))")
-                saisie.text += String(result)
+                saisie.text = String(text.joined(separator:""))
             }
             else {
                 // Si ce n'est pas l'opérateur "+/-", traitez normalement
