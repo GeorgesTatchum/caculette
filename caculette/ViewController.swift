@@ -31,7 +31,7 @@ class ViewController: UIViewController {
             }
             else if (operateurs.keys.contains(String(char))) {
                 if char == "-" && operateurs.keys.contains(lastOperator) {
-                    // Si le dernier caractère est un opérateur et que le dernier charactère précédent était pas un opérateur,
+                    // Si le dernier caractère est - et que le dernier charactère précédent était pas un opérateur (x, /),
                     // ajoutez un signe moins ("-") au nombre
                     currentnumber.append(String(char))
                     lastOperator = ""
@@ -86,25 +86,15 @@ class ViewController: UIViewController {
                 stack.append(number)
             } else if let precedence = operateurs[element] {
                 while !operatorStack.isEmpty && operateurs[operatorStack.last!]! >= precedence {
-                    if let op = operatorStack.popLast() {
-                        if op != "%", let b = stack.popLast(), let a = stack.popLast() {
+                    if let op = operatorStack.popLast(), let b = stack.popLast(), let a = stack.popLast() {
                         let result = performOperation(op, a, b)
                         stack.append(result)
-                        } else if let a = stack.popLast() {
-                            let result = performOperation(op, a)
-                            stack.append(result)
-                        }
-                    
                     }
                 }
                 operatorStack.append(element)
             }
         }
 
-        if operatorStack.last! == "%", let op = operatorStack.popLast(), let a = stack.popLast(){
-            let result = performOperation(op, a)
-            stack.append(result)
-        }
         while let op = operatorStack.popLast(), let b = stack.popLast(), let a = stack.popLast() {
             let result = performOperation(op, a, b)
             stack.append(result)
@@ -115,9 +105,10 @@ class ViewController: UIViewController {
 
     
     @IBAction func effacer(_ sender: Any) {
-        if (saisie.text.isEmpty || saisie.text != "0") {
+        if (!saisie.text.isEmpty && saisie.text != "" && saisie.text != "0") {
             saisie.text.removeLast()
         }
+        print("valeur de saisie : \(saisie.text!)")
     }
     
     @IBAction func resultat(_ sender: Any) {
@@ -127,11 +118,11 @@ class ViewController: UIViewController {
             if let result = executOperation(expression) {
                 print("result: \(result)")
                 historyText.text = String(expression.joined(separator: "")) + "=" + String(result) + "\n" + historyText.text
+                saisie.text = String(result)
             } else {
                 historyText.text = String(expression.joined(separator: "")) + "=" + "Erreur" + "\n" + historyText.text
                 print("Une erreur s'est produite lors de l'évaluation de l'expression.")
             }
-        saisie.text = "0"
     }
     override func viewDidLoad() {
         saisie.text = "0"
@@ -154,7 +145,7 @@ class ViewController: UIViewController {
         
         print("la saisie est : \(saisie.text!)")
     }
-    @IBAction func reset(_ sender: Any) {
+    @IBAction func reset(_ sender: UIButton) {
         saisie.text = "0"
         historyText.text = ""
     }
