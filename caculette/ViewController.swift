@@ -16,9 +16,13 @@ class ViewController: UIViewController {
         var currentnumber = ""
         var lastOperator = ""
         //se rassurer qu'il n'y ait pas d'espace vide dans la chaine
-        let motP = mot.trimmingCharacters (in: .whitespacesAndNewlines)
+        var motP = mot.trimmingCharacters (in: .whitespacesAndNewlines)
+        if (motP.first == "-"){
+            motP.removeFirst()
+            currentnumber = "-"
+        }
         for char in motP {
-            if char.isNumber {
+            if char.isNumber || char == "." {
                 if lastOperator == "-" && inter[inter.count-1] == lastOperator {
                     inter.removeLast()
                     currentnumber.append(lastOperator + String(char))
@@ -34,10 +38,13 @@ class ViewController: UIViewController {
                 } else {
                     if(currentnumber != ""){
                         inter.append(String(currentnumber))
+                        currentnumber = ""
                     }
                     inter.append(String(char))
-                    lastOperator = String(char)
-                    if(lastOperator != "") {currentnumber = ""}
+                    if (["x", "/"].contains((String(char)))) {
+                        lastOperator = String(char)
+                        
+                    }
                     
                 }
                             
@@ -51,7 +58,7 @@ class ViewController: UIViewController {
         return inter;
     }
     
-    func performOperation(_ operatorSymbol: String, _ a: Float, _ b: Float) -> Float {
+    func performOperation(_ operatorSymbol: String, _ a: Float, _ b: Float = 0.0) -> Float {
         switch operatorSymbol {
         case "+":
             return a + b
@@ -62,7 +69,7 @@ class ViewController: UIViewController {
         case "/":
             return a / b
         case "%":
-            return (a * b) / 100
+            return a / 100
         case "+/-":
             return -a
         default:
@@ -79,15 +86,25 @@ class ViewController: UIViewController {
                 stack.append(number)
             } else if let precedence = operateurs[element] {
                 while !operatorStack.isEmpty && operateurs[operatorStack.last!]! >= precedence {
-                    if let op = operatorStack.popLast(), let b = stack.popLast(), let a = stack.popLast() {
+                    if let op = operatorStack.popLast() {
+                        if op != "%", let b = stack.popLast(), let a = stack.popLast() {
                         let result = performOperation(op, a, b)
                         stack.append(result)
+                        } else if let a = stack.popLast() {
+                            let result = performOperation(op, a)
+                            stack.append(result)
+                        }
+                    
                     }
                 }
                 operatorStack.append(element)
             }
         }
 
+        if operatorStack.last! == "%", let op = operatorStack.popLast(), let a = stack.popLast(){
+            let result = performOperation(op, a)
+            stack.append(result)
+        }
         while let op = operatorStack.popLast(), let b = stack.popLast(), let a = stack.popLast() {
             let result = performOperation(op, a, b)
             stack.append(result)
@@ -111,6 +128,7 @@ class ViewController: UIViewController {
                 print("result: \(result)")
                 historyText.text = String(expression.joined(separator: "")) + "=" + String(result) + "\n" + historyText.text
             } else {
+                historyText.text = String(expression.joined(separator: "")) + "=" + "Erreur" + "\n" + historyText.text
                 print("Une erreur s'est produite lors de l'évaluation de l'expression.")
             }
         saisie.text = "0"
@@ -122,11 +140,19 @@ class ViewController: UIViewController {
     }
 
     @IBAction func saisie_nombre(_ sender: UIButton) {
-        print("la valeur saisie est : \(sender.titleLabel!.text!)")
+        
         if saisie.text.count == 1 && saisie.text == "0"{
             saisie.text = ""
         }
-        saisie.text += sender.titleLabel!.text!
+        if sender.titleLabel!.text! == "," && (saisie.text == "" || saisie.text == "0")  {
+            saisie.text = "0."
+        } else if sender.titleLabel!.text! == "," {
+            saisie.text += "."
+        } else {
+            saisie.text += sender.titleLabel!.text!
+        }
+        
+        print("la saisie est : \(saisie.text!)")
     }
     @IBAction func reset(_ sender: Any) {
         saisie.text = "0"
@@ -156,11 +182,16 @@ class ViewController: UIViewController {
                 }
             } else if sender.titleLabel!.text! == "%" && saisie.text.last == "%" {
                 // ne rien faire
+            } else if sender.titleLabel!.text! == "%" && saisie.text.last!.isNumber {
+                let a: String = String(saisie.text!.popLast() ?? "0")
+                let result: Float = (Float(a) ?? 0) / 100
+                print("la valeur saisie est : \(String(result))")
+                saisie.text += String(result)
             }
             else {
                 // Si ce n'est pas l'opérateur "+/-", traitez normalement
                 if operateurs.keys.contains(String(saisie.text.last!)) && sender.titleLabel!.text! != "%" && saisie.text.last! != "%" {
-                    // Si le dernier caractère est déjà un opérateur sauf %, supprimez-le avant d'ajouter le nouvel opérateur
+                    // Si le dernier caractère est déjà un opérateur: %, et le caract
                     saisie.text.removeLast()
                 }
                 saisie.text += sender.titleLabel!.text!
